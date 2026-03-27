@@ -1,0 +1,10 @@
+[
+  {
+    "id": "css-specificity",
+    "category": "CSS",
+    "topic": "层叠与选择器",
+    "question": "CSS 中选择器优先级（specificity）如何大致比较？`!important` 与内联样式在层叠中的角色是什么？",
+    "answer": "行内样式、!important、选择器权重（ID/类/元素等）共同决定；同权重靠出现顺序；!important 会覆盖普通规则但应少用以保持可维护性。",
+    "difficulty": "Easy"
+  }
+]

@@ -1,0 +1,15 @@
+diff --git a/node_modules/@expo/cli/build/src/start/server/metro/MetroBundlerDevServer.js b/node_modules/@expo/cli/build/src/start/server/metro/MetroBundlerDevServer.js
+index a8dbeb2..b1eeffe 100644
+--- a/node_modules/@expo/cli/build/src/start/server/metro/MetroBundlerDevServer.js
++++ b/node_modules/@expo/cli/build/src/start/server/metro/MetroBundlerDevServer.js
+@@ -856,7 +856,9 @@ class MetroBundlerDevServer extends _BundlerDevServer.BundlerDevServer {
+         };
+         this.instanceMetroOptions = instanceMetroOptions;
+         const parsedOptions = {
+-            host: options.location.hostType === 'localhost' ? 'localhost' : undefined,
++            // Bind IPv4 loopback: Node/macOS often resolves `localhost` to ::1 only, so Expo Go
++            // (which fetches http://127.0.0.1:8081) gets connection refused. See metro.config note.
++            host: options.location.hostType === 'localhost' ? '127.0.0.1' : undefined,
+             port: options.port,
+             maxWorkers: options.maxWorkers,
+             resetCache: options.resetDevServer

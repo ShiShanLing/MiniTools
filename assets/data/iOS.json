@@ -1,0 +1,378 @@
+[
+  {
+    "id": "ios-weak-side-table",
+    "category": "iOS",
+    "topic": "内存 / ARC",
+    "question": "从原理上讲，如何实现 weak？（侧表 / 映射表思路）",
+    "answer": "面试可用「全局弱引用表」口述：1）维护一张弱引用侧表（概念上可用哈希表）；2）key 为被引用对象的标识（可理解为对象地址/唯一 id）；3）value 为指向该对象的所有 weak 指针变量的链表或集合；4）当对象引用计数降为 0、即将释放时，根据 key 在表中查找，遍历这些 weak 入口，将它们全部置为 nil，再回收对象。真实系统（如 ObjC/Swift 运行时）会在实现细节上优化侧表与对象生命周期的耦合，但面试答题结构与此一致。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-block-capture",
+    "category": "iOS",
+    "topic": "Block",
+    "question": "__block 的作用与实现思路？Block 对变量的「截获」有什么限制？",
+    "answer": "__block 会将被修饰的栈变量包装成堆上的结构（可理解为含 isa、forwarding 指针、实际变量值等），这样 Block 内可读写该变量且多实例共享同一份「盒子」。Block 会截获局部自动变量（按 const 复制或 __block 引用）；不截获局部静态变量、全局变量（它们本身有固定地址，Block 内直接使用而非复制）。forwarding 用于在复制 Block 后，`变量结构` 可能被移动，通过 forwarding 找到当前有效实现。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-method-cache-imp",
+    "category": "iOS",
+    "topic": "Runtime / 性能",
+    "question": "一个方法在热点路径上被调用上万次，可做哪些优化？",
+    "answer": "1）运行时会对消息发送做方法缓存（类的方法缓存列表里缓存 sel → IMP），首次查找后后续命中缓存很快。2）在确定类型与签名不变的前提下，可取得 `method_getImplementation` 得到 IMP，在紧凑循环里直接函数指针调用，减少反复 objc_msgSend 的动态分发开销（需注意 swizzle、子类覆盖等导致 IMP 变化时要重新取或慎用）。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-category-call-original",
+    "category": "iOS",
+    "topic": "Runtime / Category",
+    "question": "分类里的方法与类里同名导致「被覆盖」时，如何还能调用到原先类里的实现？",
+    "answer": "运行时方法列表中，同类同名方法只保留一个 IMP，Category 若后加载通常会覆盖类上的同名实现，所以不能指望「再通过原 sel 调到类实现」。做法之一：在 Category `+load` 或首次调用前，用 `class_getInstanceMethod` / `class_copyMethodList` 等方式在交换前后保存原始 IMP，再通过自定义 sel 或 C 函数指针调用保存的 IMP。口述题若答「遍历 `class_copyMethodList`，按加载顺序找多个同名实现」可作为思路，但实际项目以交换前保存原 IMP 更可靠；答时说明顺序与运行时加载规则即可。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "swift-generics",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "如何理解 Swift 的泛型？",
+    "answer": "泛型用类型形参占位，在使用时再具体化。`Array<Element>`、`Dictionary<Key,Value>`、`Optional<Wrapped>` 等都依赖泛型。泛型函数对入参/返回值抽象类型；泛型类型在定义时带形参；泛型约束用 `where`、`:` 指定协议或基类；带关联类型的协议常与泛型配合（有时需 `some`/`any` 或 type erasure）。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-optional",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "Optional 的底层模型与常见解包方式？可选链、隐式可选是什么？",
+    "answer": "Optional<T> 本质是枚举：`none` 与 `some(Wrapped)`，无值时为 `none`，有值时关联值存内容。解包：`!` 强制解包（nil 会崩溃）；`if let` / `guard let` 安全绑定；`??` 空合并给默认值。可选链 `a?.b?.c`：任一环节为 nil 则整条表达式为 nil，不继续求值、不崩溃。隐式可选（`Type!`）语法上可当非可选用，本质仍是 Optional，值为 nil 时强拆会崩；与「普通可选」相比更易误用，宜谨慎。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-vs-objc",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "相对 Objective-C，使用 Swift 的常见理由？Swift 访问级别大致有哪些？",
+    "answer": "优势可概括为：语法与结构更清晰、可选类型与类型安全减少空指针类问题、模式匹配与泛型等减少样板代码、在常见场景下性能与优化空间较好。访问控制（由宽到严）：`open`（可模块外继承/重写）、`public`、`internal`（默认，模块内可见）、`fileprivate`、`private`。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-unowned-weak",
+    "category": "iOS",
+    "topic": "Swift / 内存",
+    "question": "Swift 中 `weak` 与 `unowned` 如何选用？常见循环引用场景怎么拆？",
+    "answer": "【共同点】weak、unowned 都是「非强引用」：不会给对象的引用计数 +1，专门用来打断循环引用（例如 A 强引用 B、B 又强引用 A，两边计数都降不到 0，内存泄漏）。\n\n【情况一 · 两边都允许为 nil】两个类里互相指着的那两个属性，都可以设计成可选类型 Optional。这时典型做法是至少给其中一侧加 weak（也可以两边都 weak，看建模）。weak 必须是 var + 可选类型；当被指的对象释放了，运行时会把这个 weak 引用自动置成 nil，后面再读就是 nil，不会当野指针去解引用，相对安全。\n\n【情况二 · 一边可以 nil、一边不行】面试常举例：一端生命周期明显更长（例如父），一端更短或可能先被释放（例如子）。在「一定会活得更久」的那一侧，如果语义上不需要 Optional，有的人会用 unowned 指向「较短命」的那一侧，避免 Optional 层层解包。注意：unowned 不会把属性变成 Optional，对方对象释放后它也不会自动变 nil，而是留下无效引用；若此时还去调用它的方法或读属性，会像野指针一样崩溃。所以只有在你能严格保证「我访问这一刻，对方一定还活着」时才该用 unowned；但凡有点拿不准，就改用 weak + Optional。\n\n【情况三 · 两边在业务上都「一直认为有值」】有的答法会写：一侧用 unowned，另一侧用隐式解析可选（Type!），这样既想表达「正常情况下总有实例」，又要在引用计数上打破环。这种模式对生命周期约束更强，实务里更常见仍是「至少一侧 weak」来保命。\n\n【和闭包一起记】闭包里捕获 self 若形成环，常用 `[weak self]` 或 `[unowned self]`，规则和上面一致：不确定就用 weak，在闭包体内 guard let self。\n\n【小结】weak：适用面最广，对象没了会变 nil，安全。unowned：不写 Optional、有一点性能/写法上的甜头，但对方先释放后你再访问就崩；只用于生命周期能证明的场景。犹豫时一律 weak。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-lib-static-dynamic",
+    "category": "iOS",
+    "topic": "构建 / 链接",
+    "question": "iOS/macOS 开发中，静态库与动态库有什么主要区别？常见扩展名有哪些？",
+    "answer": "动态库常见形态：`.dylib`、动态 `framework`（Mach-O 为 dylib，运行时由 dyld 映射进进程）。静态库常见：`.a`，以及可打包成静态 `framework`。链接静态库时，所需目标代码会在链接期拷贝进可执行文件；多个目标重复链接同一静态库可能带来体积冗余。动态库在链接期不整份拷进可执行体，运行时再加载到内存；系统级动态库可被多进程共享、一般只加载一份，更省内存。注意：`framework` 只是目录结构，内部既可以是静态链接也可以是动态链接，需看产物配置。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-resident-thread",
+    "category": "iOS",
+    "topic": "多线程",
+    "question": "如何实现一条「常驻」后台线程（不随任务结束立刻退出）？常见写法有哪些？",
+    "answer": "子线程默认跑完任务就退出；要常驻需线程上有事件源持续跑起来。常见：1）`NSThread` 子类或 `Thread` 里执行 `RunLoop.current.run()`（之前向该 RunLoop 添加 `Port` 或 `scheduledTimer` 等，避免无 source 立刻退出），在有任务时 `perform` 到该线程。2）用 GCD 创建串行队列 + `dispatch_semaphore_wait` 在底部永久等待（配合业务发信号），或使用单独线程跑 RunLoop。要点：明确退出条件避免泄漏；UI 相关仍在主线程。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-spin-mutex-locks",
+    "category": "iOS",
+    "topic": "多线程 / 锁",
+    "question": "自旋锁和互斥锁等常见锁有什么区别？临界区、读写锁、信号量、递归锁大致是什么？",
+    "answer": "锁用于协调线程对共享资源的访问。常见分类口述：\n\n【自旋锁 vs 互斥锁】互斥锁（mutex）拿不到锁时，线程通常阻塞或睡眠，不占 CPU 等锁；被唤醒后再试。自旋锁（spin lock）拿不到时在用户态循环检测（忙等），占着 CPU，适合「临界区极短、持有锁时间远小于线程切换开销」的场景；若持锁时间长或竞争激烈，自旋浪费 CPU。\n\n【原子操作】粒度最小，只做单次读/写保证原子性；极短临界区若用互斥锁，线程切换开销可能大于保护的那几步，有时选自旋或底层原子指令更合适。\n\n【临界区】不是某种锁，而是「访问共享资源的那一段代码」，锁用来保证同一时刻只有一个线程进入临界区（或读写规则下的并发策略）。\n\n【读写锁】如 pthread_rwlock：多读单写，读可并发，写互斥。常由互斥锁 + 条件变量等实现。\n\n【信号量 semaphore】计数更大的一般同步原语；互斥可看作计数为 1 的信号量特例，可表达更复杂的许可/限流。\n\n【条件锁 / 条件变量】线程在条件不满足时等待，被唤醒后再竞争锁继续执行，常与互斥锁配合。\n\n【递归锁】同一线程可重复加锁同一把锁而不死锁，如 `NSRecursiveLock`，`pthread_mutex` 可配 `PTHREAD_MUTEX_RECURSIVE`。\n\n【OSSpinLock 与优先级反转】低优先级持锁时，高优先级线程自旋忙等占满 CPU，低优线程难以运行、无法释放锁，形成严重问题；libobjc 等已弃用 OSSpinLock。替代思路包括更稳健的退避、handoff 等；`os_unfair_lock` 是 Apple 侧常见替代，需注意系统版本与用法文档。\n\n实际选型：默认用互斥/串行队列；极短热点路径才考虑自旋或原子；API 与平台文档为准。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-dispatch-once",
+    "category": "iOS",
+    "topic": "GCD",
+    "question": "`dispatch_once` 做单例时大致如何保证「只执行一次」且线程安全？",
+    "answer": "典型写法：`static Class *instance = nil;` 与 `static dispatch_once_t onceToken;`（`onceToken` 初值为 0）。调用 `dispatch_once(&onceToken, ^{ instance = [[Class alloc] init]; });` 时，GCD 在底层对 `onceToken` 做原子检查与同步：仅第一次传入的 block 会执行；执行完成后把标记置为「已完成」，后续调用直接跳过 block，所有线程看到的结果一致，从而在无需手写外层锁的情况下保证单例初始化只会发生一次。`onceToken` 必须对同一静态存储期变量取地址，且 block 内一般只做一次性初始化。单例模式还要考虑子类、测试可替换性等工程问题，但面试题常停在 `dispatch_once` 语义本身。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-resident-thread-usage",
+    "category": "iOS",
+    "topic": "多线程",
+    "question": "常驻线程一般用在什么场景？和业务怎么配合？",
+    "answer": "适合把「界面交互背后的一串重计算、解析、编解码、拼装模型」等从主线程挪走，减轻主线程压力、减少卡顿；交互频繁时主线程只负责轻量 UI，逻辑在后台串行或受控并发执行。\n\n常配合「任务队列」思维：交互产生任务入队，常驻线程/worker 顺序执行，逻辑层执行顺序可控，便于统一加日志、失败重试、节流等横切处理，而不随界面乱跳。\n\n注意：并非所有事都要常驻线程，简单任务用全局并发队列或异步 block 即可；常驻要管理生命周期与退出，避免线程 Leak；UI 更新仍回主线程。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-block-local-mutable",
+    "category": "iOS",
+    "topic": "Block",
+    "question": "为什么局部自动变量不加 `__block`，在 Block 里「改」它往往会编译报错？",
+    "answer": "对局部自动变量（栈上普通变量），Block 默认按捕获时的值建立一个「只读」副本包在 Block 结构里，语义上相当于在 Block 内不能给这个捕获变量重新赋值（等价于 const），否则会编译错误。\n\n若要在 Block 执行时和它「共享同一份可修改的存储」，需要 `__block` 修饰：编译器会生成间接指向的共享结构（块内通过 forwarding 访问），这样赋值才会作用到同一份变量上；这也是 `__block` 与「mutable 捕获」的由来。\n\n只读使用捕获到的值一般没问题；要「在 block 内修改外层局部变量」就加 `__block`，或改用实例属性、`NSMutableArray` 等可变容器间接修改。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-class-vs-struct",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`class` 与 `struct` 有啥区别？",
+    "answer": "`class` 是引用类型（引用语义），实例在堆上分配，赋值/传参多共享同一实例；支持继承、`deinit`、运行时多态等。`struct` 是值类型（值语义），按复制传递；默认成员逐一初始化，无继承；常用 `protocol` + 泛型扩展能力。选型：小型建模、不可变数据用 struct 更轻；需继承、共享可变状态、与 ObjC 互通等用 class。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-set-api",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`Set` 相对 `Array` 有什么特点？常用集合运算 API？",
+    "answer": "`Set` 元素唯一且无序，适合「是否在集合中」、集合运算。例：`let a: Set = [1,2,3,4]` 与字面量里重复 4 只会保留一个。常见方法：`union` 并集、`intersection` 交集、`subtracting` 差集（A 去掉 B 中元素）、`symmetricDifference` 对称差（只属于其一）。还有 `isSubset(of:)`、`isDisjoint(with:)` 等。集合元素需 `Hashable`。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-generic-min",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "用泛型写一个 `min`，比较两个同类型值返回较小者。",
+    "answer": "约束类型遵循 `Comparable`：\nfunc myMin<T: Comparable>(_ a: T, _ b: T) -> T {\n  return a < b ? a : b\n}\n调用如 `myMin(1, 2)`、`myMin(\"b\", \"a\")`。要点：泛型形参 `T`、`T: Comparable` 约束、`Comparable` 首字母大写。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-map-filter-reduce",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`map`、`filter`、`reduce` 分别是干啥的？能链式用吗？",
+    "answer": "`map`：把序列每个元素映射成新值，得到新序列（长度一般不变）。如 `[1,2,3].map { \"\\($0)\" }` 得字符串数组。`filter`：保留使闭包为 true 的元素。如 `[1,2,3].filter { $0 % 2 == 0 }`。`reduce`：_fold_ 成单一结果，如初值 `reduce(\"\") { $0 + \"\\($1)\" }` 拼接成 `\"123\"`。可链式：`(0..<10).filter { $0 % 2 == 0 }.map { \"\\($0)\" }.reduce(\"\") { $0 + $1 }`。复杂度与中间集合权衡时可用 lazy。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-cow",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "Swift 里的 Copy-on-Write（写时复制）是什么？",
+    "answer": "许多标准库值类型（如 `Array`、`Dictionary`、`String`）底层不是每次赋值都深拷贝整块缓冲区；多个变量可短期共享同一份存储，直到某一方要「写入」时才复制出独立副本，从而减少开销。这是实现细节层面的优化，对使用者仍表现为值语义。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-literal-line-file",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "如何取得当前源码位置（文件名、行号、列、函数名）？",
+    "answer": "编译期字面量：`#file`（或 `#fileID` / Swift 5.3+）、`#line`、`#column`、`#function`。常用于日志、断言、`fatalError` 自定义信息。传给函数时若参数带默认值 `function: String = #function`，调用处可省略。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-guard",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`guard` 和 `if` 有啥不同？适合啥场景？",
+    "answer": "`guard 条件 else { ... }`：`else` 里必须「结束当前作用域」（`return`、`throw`、`break` 等），用于提前失败、把后续代码当成「条件已满足」的直线路径。可选绑定 `guard let x = ... else { return }` 后 `x` 可在后续使用。适合校验参数、登录态、可选前置条件，减少嵌套。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-defer",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`defer` 何时执行？多个 `defer` 顺序？",
+    "answer": "`defer { ... }` 在**当前作用域退出前**执行（正常返回、`return`、`throw` 离开前都会跑），用于配对清理：关文件、解锁、`defer { f.close() }` 等。同一作用域多个 `defer`：**后声明的先执行**（栈式）。不宜写复杂逻辑或依赖顺序难于理解的业务。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-string-nsstring",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "Swift `String` 和 `NSString` 什么关系？",
+    "answer": "`String` 是 Swift 结构体（值类型语义）；`NSString` 是 Foundation 的类（引用类型）。可通过 `as String` / `as NSString` 或构造器桥接混用。多数新代码直接用 `String`；需要 `NSString` 特有 API（如部分路径方法、与旧 C/ObjC API 交互）再桥接。注意 Unicode 与编码与索引（`String.Index`）与 `NSString` 的 UTF-16 单位不完全一样。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-string-substring",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "Swift 里怎么截取 `String` 的子串？",
+    "answer": "现代 Swift 用 `String.Index` 与区间：`let r = s.index(s.startIndex, offsetBy: 2)..<s.index(s.startIndex, offsetBy: 5)`，`s[r]` 得 `Substring`（可再 `String(...)`）。也可用 `prefix`/`suffix`/`dropFirst`/`dropLast` 等。老 API `substring(to:)` 等已废弃；与 Range 结合时注意索引须落在字符边界。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-throws-rethrows",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`throws` 和 `rethrows` 有什么区别？",
+    "answer": "`throws` 标记函数**可能**抛出错误，调用方用 `try` 并在 `do/catch` 或继续 `throws` 传播。`rethrows` 用于「高阶函数」：自身仅当传入的闭参**会抛错**时才把错误往外抛；若传入不抛错的闭包，调用方可不写 `try`。一般用 `rethrows` 不能随意改成对外 API 的 `throws` 替换双向（语义不同）。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-try-optional-bang",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`try?` 和 `try!` 是什么？",
+    "answer": "`try?`：把抛错结果变成可选，成功为 `.some`，失败为 `nil`，无需 `catch`。`try!`：断言不会失败，若仍抛错则**运行时崩溃**，等价于强制解包的错误版。不确定时优先 `try?` 或正式 `do/catch`。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-final",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`final` 修饰类或成员有什么作用？",
+    "answer": "`final class`：禁止被继承。`final` 方法/属性/下标：禁止子类 override。用于封闭设计、优化派发（可到静态派发）、明确不允许子类化。只对需要处加 `final`，不必整个类都 final。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-public-open",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`public` 和 `open` 区别？",
+    "answer": "二者都可让符号在**模块外**可见。`public`：模块外可用，但类通常**不能再被模块外子类化**，`public` 成员也不能在模块外 override。`open`：允许模块外**继承**与 **override**，可见性更宽。框架里要给别人扩展的 API 常用 `open`。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-dynamic",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "`@objc` / `dynamic` 在 Swift 里常用干啥？",
+    "answer": "`dynamic` 将分发交给 ObjC 运行时（消息派发），从而支持 KVO、部分 swizzle、与 ObjC 动态特性互通。`@objc` 暴露给 ObjC 运行时（selector）。KVO 观察的属性常需 `dynamic`（或在合适继承链上）。静态派发是 Swift 默认优化路径，不需要动态时不要乱标。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "swift-break-retain-cycle",
+    "category": "iOS",
+    "topic": "Swift / 内存",
+    "question": "打破循环引用常见有哪些办法？",
+    "answer": "1）能建模成值类型则用 struct enum 减少类互指。2）delegate / 闭包回调一方用 `weak` 或 `unowned`。3）闭包用 `[weak self]` / `[unowned self]` 避免强捕获 self。4）及时置 nil、缩短生命周期等。核心：让环上至少一边不是强引用。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "swift-static-vs-class-var",
+    "category": "iOS",
+    "topic": "Swift 语言",
+    "question": "类里定义「类型方法」时 `static` 和 `class` 有啥区别？",
+    "answer": "在 class 上：`static` 类型方法**不可被子类继承覆盖**（等价于 `final class` 方法）。`class` 类型方法**可被子类 override**。在 struct/enum 上只能用 `static`。需要根据是否允许子类多态选用。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "ios-main-autoreleasepool",
+    "category": "iOS",
+    "topic": "内存 / Runtime",
+    "question": "`main` 里的 `@autoreleasepool` / `autoreleasepool { }` 有什么作用？",
+    "answer": "`autoreleasepool` 在**池 drain** 时释放本池内被 `autorelease` 推迟释放的对象，用于及时归还峰值内存。ARC 下部分边界（如 ObjC 互操作、返回值等）仍会产生 autorelease 对象。主线程 Run Loop 每一圈往往自带 autorelease pool 边界；模板里在 `main` 外包一层，能在启动与循环早期回合内约束这类对象的寿命，避免无谓堆积。**不是**「等整个 Run Loop 永远结束才释放」——通常是**周期性地**随 pool drain 释放本轮产生的临时 autorelease 对象。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-load-vs-initialize",
+    "category": "iOS",
+    "topic": "Objective-C / Runtime",
+    "question": "`+load` 与 `+initialize` 的触发时机、调用方式与顺序？",
+    "answer": "**`+load`**：镜像加载、类被 runtime 映射进内存时调用，**在 `main` 之前**；无需「发消息」即用；通常通过**直接找 IMP 调用**，不走 `objc_msgSend`。每个类（及 Category）的 `+load` 一般只执行一次。顺序要点：先调**父类**再**子类**；同一层级常受**编译/链接顺序**影响；之后还会调 **Category** 的 `+load`。**`+initialize`**：类**第一次收到消息前**由 runtime **懒加载**触发；走**正常消息派发** `objc_msgSend`。若子类未实现 `+initialize`，可能用父类实现（父类 `+initialize` 可能对子类再触发一次，需注意实现里防重入/别写死类名）。二者共同点：都会保证**先父后子**这套初始化顺序；区别：`+load` 偏「装载期一次性设置」，`+initialize` 偏「首次使用前」。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-tcp-http-vs-socket",
+    "category": "iOS",
+    "topic": "网络",
+    "question": "「HTTP 用的 TCP」和「Socket 编程里的 TCP」有什么不同？",
+    "answer": "**本质上是同一种传输层 TCP**，差别在**之上封了什么、连接策略谁决定**。**HTTP** 是应用层协议：可以**短连接**（请求完就关），也可以 **`Connection: keep-alive` / HTTP/2** 等**长连接**——并非「HTTP 一定是短连」。**Socket** 一般指**对 BSD socket / 流式接口的编程抽象**，TCP 建立后是否立刻断开完全由你的读写与 `close` 决定，可长可短。把二者说成「HTTP 必短、Socket 必长」容易误导；更准确是：**HTTP 定义报文语义与默认习惯，Socket 只负责字节流的建立与传输。**",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-crash-guard-swizzling",
+    "category": "iOS",
+    "topic": "Objective-C / 稳定性",
+    "question": "常见「崩溃防护」思路里，Method Swizzling / Category 大致在做什么？",
+    "answer": "利用 ObjC **运行时动态性**，以**面向切面**的思路在**不大量改业务类**的前提下，对易崩的系统调用点做拦截：常在 Category 里 **`method_exchangeImplementations` 或 `class_replaceMethod` 等**把目标 `selector` 的 IMP 换成自己的实现，在原逻辑前后加**空值、越界、KVO 异常**等防护或降级。风险：与系统/第三方 swizzle 顺序冲突、签名不匹配、副作用难测；多作为**止血/统计**手段，需有开关与回滚，不能替代根因修复与合规 API 使用。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-crash-guard-categories",
+    "category": "iOS",
+    "topic": "Objective-C / 稳定性",
+    "question": "防护 SDK 常见会兜住哪些类型的 Crash？（面试常列举）",
+    "answer": "常见可拦截/降噪目标（视实现而定，**不能指望 100% 安全**）：**unrecognized selector**（向对象发送了无实现消息）；**KVO**（重复移除、键路径非法、dealloc 未拆观察者等）；**KVC**（`setValue:forKey:` 等引发的异常）；**NSNotification**（已释放观察者仍被投递、在多线程下野指针等，多靠 swizzle `postNotification` 或 weak 化封装）；**NSTimer / CADisplayLink**（target 已释放、循环引用未 invalidate 等）；**容器 / 字符串**（越界、`nil` 插入、空字典插入等非法用法）；**线程**（子线程调 UIKit 等）。其余如野指针、堆损坏、内核级问题通常**无法**靠业务侧「防护」可靠解决。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "ios-forwarding-swizzle-stub",
+    "category": "iOS",
+    "topic": "Objective-C / Runtime",
+    "question": "用 Swizzle `forwardingTargetForSelector:` 缓解 `unrecognized selector` 的典型流程是怎样的？",
+    "answer": "思路：在**消息转发早期**接一个替身在，**吞掉**本应走向 `doesNotRecognizeSelector:` 的路径。常见步骤：1）给 `NSObject`（或更稳妥地限定场景）加 Category，实现如 `-crashGuard_forwardingTargetForSelector:`。2）与系统 `-forwardingTargetForSelector:` **交换 IMP**。3）在自定义实现里：若原有逻辑能返回合法转发对象则沿用；若已走完整套仍无法处理，可**动态建类**、`class_addMethod` 给**桩 IMP**（空实现或打日志），实例化后作为 forwarding target，使消息被「接住」而不崩。**代价**：掩盖 bug、调试困难，可能与自定义 `forwardInvocation:` 等逻辑冲突，需上线开关与监控。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ios-nsdictionary-vs-nscache",
+    "category": "iOS",
+    "topic": "Foundation",
+    "question": "`NSDictionary` / `NSMutableDictionary` 与 `NSCache` 主要区别？",
+    "answer": "**线程**：`NSCache`**官方保证**可在多线程并发访问；`NSMutableDictionary` **非线程安全**，多线程要写需外包锁或串行队列；不可变 `NSDictionary` 多线程**只读**通常可接受，仍要注意与别处写分离。**语义**：`NSDictionary` 是一般键值存储；`NSCache` 专作**缓存**，在**内存压力**下可**自动丢弃**条目（行为近似 LRU，**非严格保证**）。**键值行为**：`NSCache` **不拷贝 key**，通常 **retain**（`NSCopying` 的键要小心循环 retain）；字典对符合要求的 key 常 **copy**。**配额**：`NSCache` 有 `countLimit`、`totalCostLimit`。可配 **`NSPurgeableData`** 等可丢弃内容，系统在内存紧张时可清空。**使用建议**：昂贵计算 / IO 的派生结果用 `NSCache`；要持久、精确一致语义用字典。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "algo-lru-dll-hashmap",
+    "category": "iOS",
+    "topic": "算法 / 数据结构",
+    "question": "LRU 缓存怎么实现？为什么常提双向链表 + 哈希表？",
+    "answer": "**标答**：`HashMap`（key → 链表节点，节点里存 key/value）+ **双向链表**表示**从头到尾 = 新 → 旧**。`get` 命中：把节点**挪到头**；未命中失败。`put`：已有则更新并挪头；没有则**头插**；容量满则**删尾**。双向链表才能在已知节点时 **O(1) unlink**。哈希把按 key 定位变成 **O(1)**。**单链表无哈希**：找 key 要扫，**O(n)**。**数组 + 时间戳**：满了要扫一遍找最大戳淘汰 **O(n)**，也不如链表直观。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-nil-nil-nsnull",
+    "category": "iOS",
+    "topic": "Foundation",
+    "question": "`nil`、`Nil`（类指针空）与 `NSNull` 有什么区别？",
+    "answer": "**`nil`**：ObjC **对象指针**（`id`）的空值，本质是空地址 `0`。**`Nil`**：**类** `Class` 的空指针（大小写约定：`nil`/`Nil`）。二者都是「空指针」，不是「一块特殊地址里的对象」。**`NSNull`**：单例 **`[NSNull null]`**，是一个**真实的 ObjC 对象**，用于 `NSArray`/`NSDictionary` 等**不能放 nil** 的容器里表示「显式空」。和 `nil` 比：`NSNull` 进集合会占一个槽；`nil` 在集合 API 里常表示结束或无效。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "objc-thread-safe-mutable-array",
+    "category": "iOS",
+    "topic": "Foundation / 多线程",
+    "question": "如何实现线程安全的 `NSMutableArray`？",
+    "answer": "`NSMutableArray`**本身非线程安全**：多线程同时读写会数据错乱或崩。做法：**1）锁**：`@synchronized`、`NSLock`、`pthread_mutex`、读写锁等，对所有读写包一层（注意粒度与死锁）。**2）串行队列**：所有访问同一数组的读写在**同一条串行** `dispatch_queue` 上执行（《Effective ObjC》思路：多用队列、少用裸锁）。**3）并发队列 + barrier**：读可并发 `async`，写用 `barrier` 独占，并发读效率常更好。或直接用内置线程安全结构（如考虑 `dispatch_queue` 背后包一层面向业务的访问 API）。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-atomic-property",
+    "category": "iOS",
+    "topic": "内存 / 属性",
+    "question": "`atomic` 修饰的属性是绝对线程安全的吗？为什么？",
+    "answer": "**不是**。**`atomic`**只保证**合成访问器**里 get/set 单次操作在 CPU 级更不易读到「撕碎的 half-written」值（实现上用锁或等价机制），不保证**复合操作**安全：如线程 A `if ([self.arr count]) [self.arr removeLastObject]` 与 B 同时改仍是竞态；自定义逻辑、多属性不变式也不受保护。**`release`/生命周期**与其它线程的配合也要靠更大粒度的同步或队列模型。实务中 UI 与多数模型仍常用 `nonatomic` + 明确队列/锁。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-is-equal-hash",
+    "category": "iOS",
+    "topic": "Foundation",
+    "question": "实现 `-isEqual:` 与 `-hash` 时要注意什么？",
+    "answer": "**契约**：若 `isEqual:` 为真，则 **`hash` 必须相同**；`hash` 相同**不能**反推一定 equal（哈希碰撞允许）。**hash**：用**关键**不可变字段组合，常用**异或**或与素数加权、位混合，避免全用 `|` 导致区分度差。**isEqual：**自反；先指针相等可短路；再比 **Class**；对 `nil`、非同类安全返回 `NO`；再逐关键属性用合适比较（`isEqual:`、`compare:` 等）。`NSArray`/`NSSet`/`NSDictionary` 作 key 时尤其要一致实现二者。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-id-vs-instancetype",
+    "category": "iOS",
+    "topic": "Objective-C 语言",
+    "question": "`id` 与 `instancetype` 有什么区别？",
+    "answer": "二者都能表示「某种 ObjC 对象」。**`id`**：编译期**不做具体类型检查**（除非显式转型），可作**变量类型、参数、返回值**。**`instancetype`**：表示「本类或子类的实例」，编译器会把它**收紧为接收者类型**（类方法里常为当前类），**只可出现在方法返回类型**，用于工厂/初始化方法时避免把子类实例当成父类名返回却仍被当成 `id` 失去类型提示。都可用于消息派发，差别主要在**类型安全与代码提示**。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "objc-self-vs-super",
+    "category": "iOS",
+    "topic": "Objective-C / Runtime",
+    "question": "`self` 与 `super` 的区别？底层大致怎么调？",
+    "answer": "**语义**：`self` 是**隐式参数**（方法里的接收者指针）；`super` 不是变量，是**编译器关键字**：从**父类方法列表起点**查找实现，但**接收者仍是 self**。**调用**：`[self foo]` → `objc_msgSend(self, @selector(foo))`；`[super foo]` → `objc_msgSendSuper`（`objc_super` 里带 `receiver` 与**从父类开始的查找类**）。**易错**：`[super class]` 在 NSObject 的 `-class` 下通常仍返回 **self 的真实类（多为子类）**，与 `[self class]` 常一致——`super` 改的是**查找起点**，不把 self 变成父类对象。若在子类里调的是父类实现的其它方法，行为才会与纯 `self` 派发有差异。",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "objc-synthesize-dynamic",
+    "category": "iOS",
+    "topic": "Objective-C 语言",
+    "question": "`@synthesize` 与 `@dynamic` 分别做什么？默认呢？",
+    "answer": "仅写 `@property` 时，现代 Clang 会**自动合成** ivar（默认 `_属性名`）与 getter/setter（可配 `@synthesize foo = _foo;` 显式命名）。**`@synthesize`**：告诉编译器**生成访问器与 backing ivar**（若你自己没实现对应方法）。**`@dynamic`**：声明访问器**由运行时提供**（Core Data、`resolveInstanceMethod:`、动态生成等），编译器**不生成**实现；若运行时也从未挂上对应方法，访问属性会**运行时才崩**。别把「能编译」当成「一定有 setter/getter」。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "objc-c-struct-vs-objc-class",
+    "category": "iOS",
+    "topic": "C / ObjC 模型",
+    "question": "（ObjC 语境下）C 的 `struct` 与 `class`（对象）主要区别？",
+    "answer": "**struct**：通常是**值语义**的聚合类型（栈上分配或按值拷贝），无 ObjC 对象元数据（无 isa），不受 ARC 当「对象」管理（除非内含指针则要自己管）。**ObjC 对象**：**引用类型**，变量往往是**指针**，实例在**堆**上，带 isa、走消息派发与 ARC retain/release。与 **Swift** 的 `struct`/`class` 对比时再说 Swift 的 `struct` 值类型与写时复制——本题若指 **ObjC**，一般按 **C struct vs NSObject 子类**答即可。",
+    "difficulty": "Easy"
+  }
+]

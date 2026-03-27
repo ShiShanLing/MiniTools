@@ -1,0 +1,10 @@
+[
+  {
+    "id": "android-four",
+    "category": "Android",
+    "topic": "四大组件",
+    "question": "Android 中 Activity、Service、BroadcastReceiver、ContentProvider 各自主要职责是什么？各举一个简单的使用场景。",
+    "answer": "Activity 负责界面与用户交互；Service 后台长任务或跨进程能力；BroadcastReceiver 响应系统/应用广播；ContentProvider 跨应用结构化数据共享。场景略述即可。",
+    "difficulty": "Easy"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "js-event-loop",
+    "category": "JavaScript",
+    "topic": "事件循环",
+    "question": "简述 JavaScript 事件循环中调用栈、宏任务与微任务（如 Promise）的大致执行顺序。",
+    "answer": "同步代码先执行；本轮宏任务后先清空微任务队列，再执行下一个宏任务。可举 `setTimeout` vs `Promise.then` 的例子。",
+    "difficulty": "Medium"
+  }
+]

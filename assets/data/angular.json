@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ng-ts",
+    "category": "Angular",
+    "topic": "TypeScript",
+    "question": "TypeScript 中 interface 与 type 的主要异同？各自更适合什么场景？",
+    "answer": "interface 可声明合并、可对类 implements；type 可表达联合/交叉/映射类型；对象公开形状常用 interface，复杂类型组合常用 type。",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "ng-cd",
+    "category": "Angular",
+    "topic": "框架",
+    "question": "Angular 变更检测（Change Detection）在做什么？Zone.js 或 zoneless 大致如何触发一轮检查？",
+    "answer": "从根或标记组件向下检查模板绑定是否变化；Zone.js 包装异步任务钩子以调度 CD；zoneless 则依赖显式调度/信号等机制。",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "ng-css",
+    "category": "Angular",
+    "topic": "CSS / 样式",
+    "question": "组件样式封装下 :host 是什么？为什么不推荐滥用已弃用的 ::ng-deep？更稳妥的做法有哪些？",
+    "answer": ":host 选中组件宿主元素；::ng-deep 破坏封装且难维护；可用文档化 CSS 变量、全局 tokens、或受控的 ::part 等策略。",
+    "difficulty": "Medium"
+  }
+]

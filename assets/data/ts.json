@@ -1,0 +1,10 @@
+[
+  {
+    "id": "ts-narrowing",
+    "category": "TypeScript",
+    "topic": "类型收窄",
+    "question": "什么是类型收窄（narrowing）？举例说明 `typeof`、`in`、可辨识联合（discriminated union）如何帮助编译器收窄类型。",
+    "answer": "在某种控制流分支中把较宽的联合类型缩小到更具体的类型；typeof 区分基础类型；in 检查属性存在；可辨识联合靠字面量 tag 字段区分变体。",
+    "difficulty": "Medium"
+  }
+]
