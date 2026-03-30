@@ -4,6 +4,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,6 +16,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { alertSimple } from '@/components/utils/alert-compat';
+import { scoreAnswerMatch, type AnswerMatchDetail } from '@/lib/interview-answer-match';
 import { parseInterviewJson } from '@/lib/interview-json';
 import type { InterviewCategory, InterviewQuestion } from '@/lib/interview-questions';
 
@@ -83,6 +85,9 @@ export default function InterviewPracticeScreen() {
   const [sourceLabel, setSourceLabel] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [verifyResult, setVerifyResult] = useState<AnswerMatchDetail | null>(null);
+  const [verifiedAnswerSnapshot, setVerifiedAnswerSnapshot] = useState<string | null>(null);
 
   const current = questions[currentIndex] ?? null;
 
@@ -97,6 +102,9 @@ export default function InterviewPracticeScreen() {
     setSourceLabel(label);
     setCurrentIndex(0);
     setShowAnswer(false);
+    setUserAnswer('');
+    setVerifyResult(null);
+    setVerifiedAnswerSnapshot(null);
   }, []);
 
   /** 导入文件：若整份 JSON 只有一种 category，标题与「题型」一并更新 */
@@ -147,6 +155,9 @@ export default function InterviewPracticeScreen() {
     setSourceLabel('');
     setCurrentIndex(0);
     setShowAnswer(false);
+    setUserAnswer('');
+    setVerifyResult(null);
+    setVerifiedAnswerSnapshot(null);
   }, []);
 
   const importFromPickedUri = async (uri: string, name: string) => {
@@ -180,13 +191,33 @@ export default function InterviewPracticeScreen() {
     if (!questions.length) return;
     setCurrentIndex((i) => (i + 1) % questions.length);
     setShowAnswer(false);
+    setUserAnswer('');
+    setVerifyResult(null);
+    setVerifiedAnswerSnapshot(null);
   };
 
   const nextRandom = () => {
     if (!questions.length) return;
     setCurrentIndex((prev) => pickRandomIndex(questions.length, prev));
     setShowAnswer(false);
+    setUserAnswer('');
+    setVerifyResult(null);
+    setVerifiedAnswerSnapshot(null);
   };
+
+  const onVerifyAnswer = () => {
+    if (!current) return;
+    if (!userAnswer.trim()) {
+      alertSimple('验证答案', '请先写一点回答，再点验证。');
+      return;
+    }
+    setVerifyResult(scoreAnswerMatch(userAnswer, current.answer));
+    setVerifiedAnswerSnapshot(userAnswer);
+  };
+
+  const verifyStale = verifyResult !== null && verifiedAnswerSnapshot !== userAnswer;
+  const matchPercentColor =
+    verifyResult === null ? '#8E8E93' : verifyResult.percent < 40 ? '#D32F2F' : verifyResult.percent < 70 ? '#F57C00' : '#2E7D32';
 
   if (phase === 'choose') {
     return (
@@ -243,7 +274,37 @@ export default function InterviewPracticeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen options={{ title: screenTitle }} />
+      <Stack.Screen
+        options={{
+          title: screenTitle,
+          headerRight: () => (
+            <View style={styles.headerIcons}>
+              {activeTrack ? (
+                <TouchableOpacity
+                  onPress={reloadBundledTrack}
+                  disabled={loading}
+                  accessibilityRole="button"
+                  accessibilityLabel="恢复内置本题库"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
+                  style={styles.headerIconBtn}
+                >
+                  <MaterialIcons name="refresh" size={22} color={loading ? '#C7C7CC' : '#007AFF'} />
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                onPress={onPickFile}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel="导入题库 JSON"
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                style={styles.headerIconBtn}
+              >
+                <MaterialIcons name="folder-open" size={22} color={loading ? '#C7C7CC' : '#007AFF'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ThemedText style={styles.hint}>
           题型：{activeTrack ?? '混合/未区分'} · {sourceLabel} · 共 {questions.length} 题
@@ -256,21 +317,10 @@ export default function InterviewPracticeScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.btnSecondary} onPress={onPickFile} activeOpacity={0.75}>
-            <MaterialIcons name="folder-open" size={20} color="#007AFF" />
-            <ThemedText style={styles.btnSecondaryTxt}>导入 JSON</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSecondary} onPress={reloadBundledTrack} activeOpacity={0.75}>
-            <MaterialIcons name="refresh" size={20} color="#007AFF" />
-            <ThemedText style={styles.btnSecondaryTxt}>内置本题库</ThemedText>
-          </TouchableOpacity>
-        </View>
-
         {!current ? (
           <ThemedView style={styles.emptyCard}>
             <ThemedText type="defaultSemiBold">暂无题目</ThemedText>
-            <ThemedText style={styles.muted}>尝试「内置本题库」或导入 JSON。</ThemedText>
+            <ThemedText style={styles.muted}>使用右上角图标导入 JSON，或先选好题型后点「恢复内置本题库」。</ThemedText>
           </ThemedView>
         ) : (
           <>
@@ -287,6 +337,58 @@ export default function InterviewPracticeScreen() {
               </ThemedText>
               <ThemedText style={styles.body}>{current.question}</ThemedText>
             </ThemedView>
+
+            <ThemedView style={styles.answerInputCard}>
+              <ThemedText type="defaultSemiBold" style={styles.answerInputLabel}>
+                你的回答
+              </ThemedText>
+              <TextInput
+                style={styles.answerInput}
+                value={userAnswer}
+                onChangeText={setUserAnswer}
+                placeholder="在此输入你的回答…"
+                placeholderTextColor="#AEAEB2"
+                multiline
+                textAlignVertical="top"
+              />
+            </ThemedView>
+
+            <TouchableOpacity style={styles.verifyBtn} onPress={onVerifyAnswer} activeOpacity={0.75}>
+              <MaterialIcons name="fact-check" size={22} color="#007AFF" />
+              <ThemedText style={styles.verifyBtnTxt}>验证答案（关键词匹配）</ThemedText>
+            </TouchableOpacity>
+
+            {verifyStale ? (
+              <ThemedText style={styles.verifyStaleHint}>回答已改动，可再次点击「验证答案」更新评分。</ThemedText>
+            ) : null}
+
+            {verifyResult ? (
+              <ThemedView style={styles.verifyCard}>
+                <View style={styles.verifyScoreRow}>
+                  <ThemedText type="defaultSemiBold" style={styles.verifyScoreLabel}>
+                    匹配度（估算）
+                  </ThemedText>
+                  <ThemedText style={[styles.verifyScoreValue, { color: matchPercentColor }]}>
+                    {verifyResult.percent}%
+                  </ThemedText>
+                </View>
+                <ThemedText style={styles.verifyExplain}>
+                  从参考答案中提取若干「要点词块」，检查是否出现在你的回答里，并结合字符重合度估算；并非语义理解，相近说法可能判低分。
+                </ThemedText>
+                {verifyResult.hits.length > 0 ? (
+                  <ThemedText style={styles.verifyHits}>
+                    已覆盖要点（示例）：{verifyResult.hits.join('、')}
+                    {verifyResult.hits.length >= 12 ? '…' : ''}
+                  </ThemedText>
+                ) : null}
+                {verifyResult.misses.length > 0 ? (
+                  <ThemedText style={styles.verifyMisses}>
+                    未检出要点（示例）：{verifyResult.misses.join('、')}
+                    {verifyResult.misses.length >= 10 ? '…' : ''}
+                  </ThemedText>
+                ) : null}
+              </ThemedView>
+            ) : null}
 
             <TouchableOpacity
               style={styles.revealBtn}
@@ -360,6 +462,8 @@ const styles = StyleSheet.create({
   formatHint: { fontSize: 11, color: '#AEAEB2', marginTop: 16, lineHeight: 16 },
   mono: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 11 },
   actions: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center', marginRight: 4, gap: 4 },
+  headerIconBtn: { padding: 6 },
   btnGhost: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -370,19 +474,63 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   btnGhostTxt: { fontSize: 16, fontWeight: '600', color: '#007AFF' },
-  btnSecondary: {
-    flex: 1,
+  answerInputCard: {
+    padding: 16,
+    paddingBottom: 12,
+    borderRadius: 12,
+    backgroundColor: '#FAFAFA',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
+    marginBottom: 12,
+  },
+  answerInputLabel: { marginBottom: 8, fontSize: 15 },
+  answerInput: {
+    minHeight: 120,
+    maxHeight: 220,
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#1C1C1E',
+    backgroundColor: '#fff',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#D1D1D6',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  verifyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#EEF6FF',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#CCE4FF',
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    backgroundColor: '#fff',
+    marginBottom: 8,
   },
-  btnSecondaryTxt: { fontSize: 13, fontWeight: '600', color: '#007AFF', flexShrink: 1 },
+  verifyBtnTxt: { fontSize: 15, fontWeight: '700', color: '#007AFF' },
+  verifyStaleHint: { fontSize: 12, color: '#F57C00', marginBottom: 8, lineHeight: 17 },
+  verifyCard: {
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F7',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E5EA',
+    marginBottom: 12,
+    gap: 8,
+  },
+  verifyScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  verifyScoreLabel: { fontSize: 15, flex: 1 },
+  verifyScoreValue: { fontSize: 28, fontWeight: '800' },
+  verifyExplain: { fontSize: 12, color: '#636366', lineHeight: 17 },
+  verifyHits: { fontSize: 13, color: '#2E7D32', lineHeight: 19 },
+  verifyMisses: { fontSize: 13, color: '#8E8E93', lineHeight: 19 },
   emptyCard: {
     padding: 20,
     borderRadius: 12,

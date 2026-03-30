@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { findNavItemByHref } from '@/constants/app-navigation';
 import { pushTool } from '@/lib/push-tool';
 import { getFavoriteToolHrefs, getRecentToolHrefs } from '@/lib/tool-usage';
+import { useTabRootListPaddingBottom } from '@/lib/use-tab-root-list-padding';
 
 function Chip({
   href,
@@ -30,6 +31,7 @@ function Chip({
 
 export default function MoreScreen() {
   const router = useRouter();
+  const listPadBottom = useTabRootListPaddingBottom();
   const [recent, setRecent] = useState<string[]>([]);
   const [favs, setFavs] = useState<string[]>([]);
 
@@ -68,6 +70,7 @@ export default function MoreScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '我的', headerShown: true }} />
       <FlatList
+        style={styles.listFlex}
         data={rows}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
@@ -105,7 +108,7 @@ export default function MoreScreen() {
             ) : null}
           </View>
         }
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: listPadBottom }]}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={item.onPress} activeOpacity={0.75}>
             <MaterialIcons name={item.icon} size={30} color="#007AFF" />
@@ -143,7 +146,8 @@ const styles = StyleSheet.create({
   },
   chipText: { fontSize: 14, fontWeight: '600', color: '#007AFF', flexShrink: 1 },
   emptyHint: { paddingHorizontal: 20, fontSize: 13, color: '#8E8E93', marginBottom: 12 },
-  list: { paddingHorizontal: 16, paddingBottom: 32 },
+  listFlex: { flex: 1 },
+  list: { paddingHorizontal: 16, flexGrow: 1 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

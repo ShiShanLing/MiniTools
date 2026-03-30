@@ -21,7 +21,7 @@ export default function SavingPlan() {
     if (isNaN(T) || isNaN(C) || isNaN(M) || T <= C || M <= 0) return null;
 
     const mr = yr / 12; // 月利率
-
+    
     if (mr === 0) {
       const months = Math.ceil((T - C) / M);
       return {
@@ -30,7 +30,10 @@ export default function SavingPlan() {
         totalContribution: (months * M).toFixed(2),
         totalInterest: '0.00',
       };
+      //安卓端怎么添加小组件,
+      //
     } else {
+      
       /**
        * Goal Seek for n (months):
        * Target = Current * (1 + mr)^n + Monthly * ((1 + mr)^n - 1) / mr

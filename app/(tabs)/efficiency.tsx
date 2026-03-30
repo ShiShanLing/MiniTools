@@ -1,43 +1,42 @@
-import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { FlatList, Platform, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { getNavSection } from '@/constants/app-navigation';
+import { ToolListRow, toolTabListStyles } from '@/components/tool-list-row';
+import { getEfficiencyListRows } from '@/constants/app-navigation';
 import { pushTool } from '@/lib/push-tool';
-
-const TOOLS = getNavSection('efficiency').items.map((item) => ({
-  id: item.id,
-  title: item.title,
-  icon: item.icon,
-  route: item.href,
-}));
+import { useTabRootListPaddingBottom } from '@/lib/use-tab-root-list-padding';
 
 export default function EfficiencyScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const listPadBottom = useTabRootListPaddingBottom();
+  const tools = getEfficiencyListRows();
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
         <ThemedText type="title">效率工具</ThemedText>
-      </ThemedView>
+      </View>
+
       <FlatList
-        data={TOOLS}
+        style={toolTabListStyles.listFlex}
+        data={tools}
         keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <View style={toolTabListStyles.sep} />}
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.card}
+          <ToolListRow
+            title={item.title}
+            subtitle={item.subtitle}
+            icon={item.icon}
             onPress={() => pushTool(router, item.route)}
-          >
-            <MaterialIcons name={item.icon as any} size={32} color="#007AFF" />
-            <ThemedView style={styles.cardContent}>
-              <ThemedText type="subtitle">{item.title}</ThemedText>
-            </ThemedView>
-            <MaterialIcons name="chevron-right" size={24} color="#C7C7CC" />
-          </TouchableOpacity>
+          />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[toolTabListStyles.list, { paddingBottom: listPadBottom }]}
       />
     </ThemedView>
   );
@@ -46,31 +45,9 @@ export default function EfficiencyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   header: {
     paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  list: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardContent: {
-    flex: 1,
-    marginLeft: 16,
-    backgroundColor: 'transparent',
+    marginBottom: 12,
   },
 });

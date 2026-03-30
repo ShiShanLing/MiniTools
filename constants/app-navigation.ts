@@ -45,6 +45,7 @@ export const APP_NAV_SECTIONS: AppNavSection[] = [
     title: '效率',
     icon: 'bolt',
     items: [
+      { id: 'recurring', title: '例行任务', icon: 'event-available', href: '/efficiency/recurring-tasks' },
       { id: 'time', title: '时间效率', icon: 'timer', href: '/efficiency/timer' },
       { id: 'weather', title: '天气预报', icon: 'wb-sunny', href: '/efficiency/weather' },
       { id: 'calendar', title: '农历查询', icon: 'calendar-today', href: '/efficiency/lunar' },
@@ -73,6 +74,90 @@ export function getNavSection(sectionId: string): AppNavSection {
   const s = APP_NAV_SECTIONS.find((x) => x.id === sectionId);
   if (!s) throw new Error(`Unknown nav section: ${sectionId}`);
   return s;
+}
+
+/** 各 Tab 工具列表行（标题 + 副标题 + 图标 + 路由） */
+export type ToolListRow = {
+  id: string;
+  title: string;
+  icon: string;
+  route: string;
+  subtitle: string;
+};
+
+/** @deprecated 与 {@link ToolListRow} 相同，保留别名避免外部引用报错 */
+export type EfficiencyListRow = ToolListRow;
+
+const EFFICIENCY_LIST_SUBTITLE: Record<string, string> = {
+  recurring: '周期提醒 · 今日待办',
+  time: '番茄钟 · 待办与截止日期',
+  weather: '多日预报与实况',
+  calendar: '农历节气与宜忌',
+  coin: '快速随机正反面',
+  wheel: '转盘随机抽签',
+  fx: '常用货币换算',
+  text: '编码解码与格式化',
+  interview: '分类题库练习',
+  dev: '常用开发小工具',
+};
+
+const FINANCE_TAB_SUBTITLE: Record<string, string> = {
+  mortgage: '月供、利息与还款试算',
+  tax: '工资薪金个税估算',
+  installment: '分期期数与年化',
+  subscription: '订阅支出一览',
+  saving: '目标与存钱节奏',
+};
+
+const HEALTH_TAB_SUBTITLE: Record<string, string> = {
+  bmi: 'BMI 与体脂参考',
+  water: '每日饮水记录',
+  weight: '体重变化曲线',
+  sleep: '睡眠时长与规律',
+};
+
+const GAMES_TAB_SUBTITLE: Record<string, string> = {
+  snake: '经典贪吃蛇',
+  tetris: '俄罗斯方块消除',
+};
+
+function mapNavItemsToToolRows(
+  sectionId: 'finance' | 'health' | 'games',
+  subtitleMap: Record<string, string>,
+): ToolListRow[] {
+  return getNavSection(sectionId).items.map((item) => ({
+    id: item.id,
+    title: item.title,
+    icon: item.icon,
+    route: item.href,
+    subtitle: subtitleMap[item.id] ?? item.title,
+  }));
+}
+
+export function getFinanceListRows(): ToolListRow[] {
+  return mapNavItemsToToolRows('finance', FINANCE_TAB_SUBTITLE);
+}
+
+export function getHealthListRows(): ToolListRow[] {
+  return mapNavItemsToToolRows('health', HEALTH_TAB_SUBTITLE);
+}
+
+export function getGamesListRows(): ToolListRow[] {
+  return mapNavItemsToToolRows('games', GAMES_TAB_SUBTITLE);
+}
+
+export function getEfficiencyListRows(): ToolListRow[] {
+  const items = getNavSection('efficiency').items;
+  const recurring = items.find((i) => i.id === 'recurring');
+  const rest = items.filter((i) => i.id !== 'recurring');
+  const ordered = recurring != null ? [recurring, ...rest] : items;
+  return ordered.map((item) => ({
+    id: item.id,
+    title: item.title,
+    icon: item.icon,
+    route: item.href,
+    subtitle: EFFICIENCY_LIST_SUBTITLE[item.id] ?? item.title,
+  }));
 }
 
 export function getAllNavItems(): AppNavItem[] {

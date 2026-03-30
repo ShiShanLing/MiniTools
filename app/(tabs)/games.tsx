@@ -1,21 +1,17 @@
-import { StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { FlatList, Platform, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { getNavSection } from '@/constants/app-navigation';
+import { ToolListRow, toolTabListStyles } from '@/components/tool-list-row';
+import { getGamesListRows } from '@/constants/app-navigation';
 import { pushTool } from '@/lib/push-tool';
-
-const TOOLS = getNavSection('games').items.map((item) => ({
-  id: item.id,
-  title: item.title,
-  icon: item.icon,
-  route: item.href,
-}));
+import { useTabRootListPaddingBottom } from '@/lib/use-tab-root-list-padding';
 
 export default function GamesScreen() {
   const router = useRouter();
+  const listPadBottom = useTabRootListPaddingBottom();
+  const tools = getGamesListRows();
 
   return (
     <ThemedView style={styles.container}>
@@ -23,21 +19,21 @@ export default function GamesScreen() {
         <ThemedText type="title">休闲游戏</ThemedText>
       </ThemedView>
       <FlatList
-        data={TOOLS}
+        style={toolTabListStyles.listFlex}
+        data={tools}
         keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <View style={toolTabListStyles.sep} />}
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.card}
+          <ToolListRow
+            title={item.title}
+            subtitle={item.subtitle}
+            icon={item.icon}
             onPress={() => pushTool(router, item.route)}
-          >
-            <MaterialIcons name={item.icon as any} size={32} color="#007AFF" />
-            <ThemedView style={styles.cardContent}>
-              <ThemedText type="subtitle">{item.title}</ThemedText>
-            </ThemedView>
-            <MaterialIcons name="chevron-right" size={24} color="#C7C7CC" />
-          </TouchableOpacity>
+          />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[toolTabListStyles.list, { paddingBottom: listPadBottom }]}
       />
     </ThemedView>
   );
@@ -51,26 +47,5 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     marginBottom: 20,
-  },
-  list: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardContent: {
-    flex: 1,
-    marginLeft: 16,
-    backgroundColor: 'transparent',
   },
 });
