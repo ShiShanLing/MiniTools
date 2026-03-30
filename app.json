@@ -38,12 +38,21 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/icons/ios/AppIcon.appiconset/icon-1024.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
           "backgroundColor": "#ffffff",
+          "resizeMode": "cover",
+          "enableFullScreenImage_legacy": true,
           "dark": {
             "backgroundColor": "#000000"
+          },
+          "ios": {
+            "image": "./assets/splash/splash-9x16.png",
+            "tabletImage": "./assets/splash/splash-3x2.png",
+            "resizeMode": "cover",
+            "enableFullScreenImage_legacy": true
+          },
+          "android": {
+            "image": "./assets/splash/splash-9x16.png",
+            "resizeMode": "cover"
           }
         }
       ],
