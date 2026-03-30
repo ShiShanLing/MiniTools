@@ -67,7 +67,7 @@ export default function MoreScreen() {
   ];
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '我的', headerShown: true }} />
       <FlatList
         style={styles.listFlex}

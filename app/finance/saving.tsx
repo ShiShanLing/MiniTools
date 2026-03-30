@@ -57,7 +57,7 @@ export default function SavingPlan() {
   }, [target, current, monthly, rate]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '攒钱计划', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

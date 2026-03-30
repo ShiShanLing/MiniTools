@@ -16,7 +16,7 @@ export default function EfficiencyScreen() {
   const tools = getEfficiencyListRows();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
         <ThemedText type="title">效率工具</ThemedText>
       </View>

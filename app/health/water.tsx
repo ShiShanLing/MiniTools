@@ -77,7 +77,7 @@ export default function WaterReminder() {
   const progress = Math.min(1, current / goal);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '饮水提醒', headerShown: true, headerBackTitle: '健康' }} />
       
       <ThemedView style={styles.header}>

@@ -221,7 +221,7 @@ export default function InterviewPracticeScreen() {
 
   if (phase === 'choose') {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView style={styles.container} tabletConstrain>
         <Stack.Screen options={{ title: screenTitle }} />
         <ScrollView contentContainerStyle={styles.scrollChoose} keyboardShouldPersistTaps="handled">
           <ThemedText type="title" style={styles.chooseTitle}>
@@ -264,7 +264,7 @@ export default function InterviewPracticeScreen() {
 
   if (loading && questions.length === 0) {
     return (
-      <ThemedView style={styles.centered}>
+      <ThemedView style={styles.centered} tabletConstrain>
         <Stack.Screen options={{ title: screenTitle }} />
         <ActivityIndicator size="large" color="#007AFF" />
         <ThemedText style={styles.muted}>加载题库…</ThemedText>
@@ -273,7 +273,7 @@ export default function InterviewPracticeScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen
         options={{
           title: screenTitle,

@@ -14,7 +14,7 @@ export default function FinanceScreen() {
   const tools = getFinanceListRows();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <ThemedView style={styles.header}>
         <ThemedText type="title">财务工具</ThemedText>
       </ThemedView>

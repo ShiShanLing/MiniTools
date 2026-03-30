@@ -78,7 +78,7 @@ export default function TaxCalculator() {
   }, [salary, socialBase, housingBase, housingRatio, specialDeduction, threshold]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '个税计算', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

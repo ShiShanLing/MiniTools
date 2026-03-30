@@ -179,7 +179,7 @@ export default function TimeEfficiency() {
   );
   
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '时间效率', headerShown: true }} />
       <View style={styles.tabBar}>
         {(['pomo', 'todo', 'deadline'] as TabType[]).map(t => (

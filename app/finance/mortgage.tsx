@@ -143,7 +143,7 @@ export default function RefinedMortgageCalculator() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '房贷计算器', headerShown: true, headerBackTitle: '💰 财务' }} />
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <ThemedView style={styles.card}>

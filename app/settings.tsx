@@ -112,7 +112,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '设置', headerShown: true, headerBackTitle: '返回' }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <ThemedText type="defaultSemiBold" style={styles.section}>

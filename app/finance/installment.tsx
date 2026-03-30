@@ -41,7 +41,7 @@ export default function InstallmentCalculator() {
   }, [amount, periods, feeRate]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '分期利率计算', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

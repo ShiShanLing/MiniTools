@@ -117,7 +117,7 @@ export default function SnakeGame() {
   };
 
   return (
-    <ThemedView style={styles.container} onLayout={onRootLayout}>
+    <ThemedView style={styles.container} tabletConstrain onLayout={onRootLayout}>
       <Stack.Screen options={{ title: '贪吃蛇', headerShown: true, headerBackTitle: '游戏' }} />
 
       <View style={styles.column}>

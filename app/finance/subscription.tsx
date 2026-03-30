@@ -96,7 +96,7 @@ export default function SubscriptionManager() {
   }, [subscriptions]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '订阅管理', headerShown: true }} />
       
       <ThemedView style={styles.summaryCard}>

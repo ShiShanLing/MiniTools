@@ -124,7 +124,7 @@ export default function RecurringTasksScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '例行任务', headerShown: true }} />
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">

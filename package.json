@@ -12,6 +12,7 @@
     "reset-project": "node ./scripts/reset-project.js",
     "android": "env -u CI expo run:android",
     "ios": "env -u CI expo run:ios",
+    "ios:ipad": "env -u CI expo run:ios --device 'iPad-test'",
     "web": "expo start --web",
     "lint": "expo lint",
     "gen:interview-json": "node scripts/gen-interview-json.cjs"

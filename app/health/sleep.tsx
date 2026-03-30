@@ -50,7 +50,7 @@ export default function SleepAnalysis() {
   }, [sleepTime, wakeTime]);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '睡眠分析', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

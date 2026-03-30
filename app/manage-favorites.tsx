@@ -30,7 +30,7 @@ export default function ManageFavoritesScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '管理收藏', headerShown: true, headerBackTitle: '返回' }} />
       <FlatList
         data={ALL}

@@ -51,7 +51,7 @@ export default function TextTools() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} tabletConstrain>
       <Stack.Screen options={{ title: '文本工具', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
