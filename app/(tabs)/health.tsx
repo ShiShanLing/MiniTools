@@ -14,7 +14,7 @@ export default function HealthScreen() {
   const tools = getHealthListRows();
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <ThemedView style={styles.header}>
         <ThemedText type="title">身体健康</ThemedText>
       </ThemedView>

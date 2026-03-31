@@ -23,6 +23,9 @@ platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 prepare_react_native_project!
 
 target 'MiniTools' do
+  # 屏蔽所有第三方 Pod 的编译警告（含 nullability 等 ObjC 头文件告警），不影响主工程 MiniTools。
+  inhibit_all_warnings!
+
   use_expo_modules!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'

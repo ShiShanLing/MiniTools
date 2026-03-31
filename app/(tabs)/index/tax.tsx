@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView, TextInput, View, TouchableOpacity, Modal, FlatList } from 'react-native';
-import { Stack } from 'expo-router';
+import { StyleSheet, TextInput, View, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
@@ -78,9 +78,8 @@ export default function TaxCalculator() {
   }, [salary, socialBase, housingBase, housingRatio, specialDeduction, threshold]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
-      <Stack.Screen options={{ title: '个税计算', headerShown: true }} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ThemedView style={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} bottomOffset={16}>
         
         <ThemedView style={styles.card}>
           <ThemedText style={styles.label}>基本信息</ThemedText>
@@ -147,7 +146,7 @@ export default function TaxCalculator() {
           </TouchableOpacity>
         </ThemedView>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <Modal visible={isModalVisible} animationType="fade" transparent>
         <View style={styles.modalOverlay}>

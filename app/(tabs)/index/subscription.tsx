@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, View, TextInput, Modal, Platform } from 'react-native';
-import { Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -96,9 +95,7 @@ export default function SubscriptionManager() {
   }, [subscriptions]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
-      <Stack.Screen options={{ title: '订阅管理', headerShown: true }} />
-      
+    <ThemedView style={styles.container}>
       <ThemedView style={styles.summaryCard}>
         <View style={styles.summaryItem}>
           <ThemedText style={styles.summaryLabel}>预估月支出</ThemedText>

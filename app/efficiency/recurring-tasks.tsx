@@ -5,13 +5,13 @@ import {
   FlatList,
   Modal,
   Platform,
-  ScrollView,
   StyleSheet,
   Switch,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -124,10 +124,13 @@ export default function RecurringTasksScreen() {
   };
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '例行任务', headerShown: true }} />
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={16}>
         <ThemedView style={styles.digestCard}>
           <ThemedText type="defaultSemiBold">每日汇总提醒</ThemedText>
           <ThemedText style={styles.hint}>
@@ -208,7 +211,7 @@ export default function RecurringTasksScreen() {
           )}
           ListEmptyComponent={<ThemedText style={styles.empty}>暂无任务，点击「新建」</ThemedText>}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <TaskModal
         visible={modalOpen}
@@ -353,7 +356,10 @@ function TaskModal({
           <ThemedText type="subtitle" style={styles.modalTitle}>
             {draft.title ? '编辑任务' : '新建任务'}
           </ThemedText>
-          <ScrollView style={styles.modalScroll}>
+          <KeyboardAwareScrollView
+            style={styles.modalScroll}
+            keyboardShouldPersistTaps="handled"
+            bottomOffset={20}>
             <ThemedText style={styles.fieldLabel}>名称</ThemedText>
             <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="例如：服用维生素" />
 
@@ -422,7 +428,7 @@ function TaskModal({
                 <TextInput style={styles.timeInput} keyboardType="number-pad" maxLength={2} value={nm} onChangeText={setNm} />
               </View>
             ) : null}
-          </ScrollView>
+          </KeyboardAwareScrollView>
 
           <View style={styles.modalActions}>
             <TouchableOpacity style={styles.btnGhost} onPress={onClose}>

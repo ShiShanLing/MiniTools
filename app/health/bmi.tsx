@@ -52,7 +52,7 @@ export default function BMICalculator() {
   }, [height, weight, age, gender]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'BMI/体脂计算', headerShown: true, headerBackTitle: '🏥 健康' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

@@ -6,7 +6,9 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { ThemedText } from '@/components/themed-text';
 import { APP_NAV_SECTIONS, findNavItemByHref } from '@/constants/app-navigation';
 import { Colors } from '@/constants/theme';
-import { getRecentToolHrefs, recordToolVisit } from '@/lib/tool-usage';
+import { useAppAppearance } from '@/lib/app-appearance';
+import { pushTool } from '@/lib/push-tool';
+import { getRecentToolHrefs } from '@/lib/tool-usage';
 
 function normalizePath(p: string) {
   if (!p) return '/';
@@ -17,7 +19,12 @@ function normalizePath(p: string) {
 export function WebAppSidebar() {
   const pathname = normalizePath(usePathname());
   const router = useRouter();
-  const colors = Colors.light;
+  const { resolvedScheme } = useAppAppearance();
+  const colors = Colors[resolvedScheme];
+  const isDark = resolvedScheme === 'dark';
+  const sidebarBg = isDark ? '#1c1c1e' : '#f2f2f7';
+  const borderSubtle = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+  const recentLink = isDark ? '#64b5f6' : '#007aff';
   const [recent, setRecent] = useState<string[]>([]);
 
   const reloadRecent = useCallback(() => {
@@ -29,8 +36,7 @@ export function WebAppSidebar() {
   }, [pathname, reloadRecent]);
 
   const go = (href: string) => {
-    void recordToolVisit(href);
-    router.push(href as any);
+    pushTool(router, href);
   };
 
   return (
@@ -38,8 +44,8 @@ export function WebAppSidebar() {
       style={[
         styles.sidebar,
         {
-          backgroundColor: '#F2F2F7',
-          borderRightColor: '#D1D1D6',
+          backgroundColor: sidebarBg,
+          borderRightColor: isDark ? '#38383a' : '#d1d1d6',
         },
       ]}>
       <View style={styles.brand}>
@@ -60,17 +66,11 @@ export function WebAppSidebar() {
                 size={18}
                 color={colors.tabIconDefault}
               />
-              <ThemedText style={styles.sectionTitle}>{section.title}</ThemedText>
+              <ThemedText style={[styles.sectionTitle, { color: colors.icon }]}>{section.title}</ThemedText>
             </View>
-            <View
-              style={[
-                styles.subMenu,
-                {
-                  borderLeftColor: 'rgba(0,0,0,0.08)',
-                },
-              ]}>
+            <View style={[styles.subMenu, { borderLeftColor: borderSubtle }]}>
               {section.items.map((item) => {
-                const active = pathname === normalizePath(item.href);
+                const active = findNavItemByHref(pathname)?.id === item.id;
                 return (
                   <Pressable
                     key={item.id}
@@ -79,9 +79,11 @@ export function WebAppSidebar() {
                       styles.itemHit,
                       active && [
                         styles.itemActive,
-                        { backgroundColor: 'rgba(0,122,255,0.14)' },
+                        { backgroundColor: isDark ? 'rgba(10,132,255,0.22)' : 'rgba(0,122,255,0.14)' },
                       ],
-                      (hovered || pressed) && !active && styles.itemHoverLight,
+                      (hovered || pressed) && !active && {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                      },
                     ]}>
                     <View style={styles.itemRow}>
                       <View style={styles.itemIconWrap}>
@@ -113,9 +115,9 @@ export function WebAppSidebar() {
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <MaterialIcons name="person-outline" size={18} color={colors.tabIconDefault} />
-            <ThemedText style={styles.sectionTitle}>我的</ThemedText>
+            <ThemedText style={[styles.sectionTitle, { color: colors.icon }]}>我的</ThemedText>
           </View>
-          <View style={[styles.subMenu, { borderLeftColor: 'rgba(0,0,0,0.08)' }]}>
+          <View style={[styles.subMenu, { borderLeftColor: borderSubtle }]}>
             {[
               { id: 'more', title: '最近与入口', href: '/more' as const, icon: 'home' as const },
               { id: 'fav', title: '管理收藏', href: '/manage-favorites' as const, icon: 'star-border' as const },
@@ -126,10 +128,15 @@ export function WebAppSidebar() {
                 <Pressable
                   key={row.id}
                   onPress={() => go(row.href)}
-                  style={({ hovered, pressed }) => [
+                    style={({ hovered, pressed }) => [
                     styles.itemHit,
-                    active && [styles.itemActive, { backgroundColor: 'rgba(0,122,255,0.14)' }],
-                    (hovered || pressed) && !active && styles.itemHoverLight,
+                    active && [
+                      styles.itemActive,
+                      { backgroundColor: isDark ? 'rgba(10,132,255,0.22)' : 'rgba(0,122,255,0.14)' },
+                    ],
+                    (hovered || pressed) && !active && {
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                    },
                   ]}>
                   <View style={styles.itemRow}>
                     <View style={styles.itemIconWrap}>
@@ -153,14 +160,22 @@ export function WebAppSidebar() {
           </View>
           {recent.length > 0 && (
             <View style={styles.recentBlock}>
-              <ThemedText style={styles.recentTitle}>最近打开</ThemedText>
+              <ThemedText style={[styles.recentTitle, { color: colors.icon }]}>最近打开</ThemedText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
                 {recent.map((h) => {
                   const meta = findNavItemByHref(h);
                   if (!meta) return null;
                   return (
-                    <Pressable key={h} style={styles.recentChip} onPress={() => go(h)}>
-                      <ThemedText style={styles.recentChipText} numberOfLines={1}>
+                    <Pressable
+                      key={h}
+                      style={[
+                        styles.recentChip,
+                        {
+                          backgroundColor: isDark ? 'rgba(100,181,246,0.18)' : 'rgba(0,122,255,0.12)',
+                        },
+                      ]}
+                      onPress={() => go(h)}>
+                      <ThemedText style={[styles.recentChipText, { color: recentLink }]} numberOfLines={1}>
                         {meta.title}
                       </ThemedText>
                     </Pressable>
@@ -281,9 +296,6 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  itemHoverLight: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-  },
   itemActive: {},
   itemLabel: {
     fontSize: 14,
@@ -304,16 +316,14 @@ const styles = StyleSheet.create({
   recentTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#8E8E93',
     marginBottom: 8,
   },
   recentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   recentChip: {
-    backgroundColor: 'rgba(0,122,255,0.12)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
     maxWidth: 140,
   },
-  recentChipText: { fontSize: 12, fontWeight: '600', color: '#007AFF' },
+  recentChipText: { fontSize: 12, fontWeight: '600' },
 });

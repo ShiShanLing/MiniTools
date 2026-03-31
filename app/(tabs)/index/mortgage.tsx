@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView, TextInput, View, TouchableOpacity, Modal, FlatList } from 'react-native';
-import { Stack } from 'expo-router';
+import { StyleSheet, TextInput, View, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
@@ -143,9 +143,11 @@ export default function RefinedMortgageCalculator() {
   };
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
-      <Stack.Screen options={{ title: '房贷计算器', headerShown: true, headerBackTitle: '💰 财务' }} />
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <ThemedView style={styles.container}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={16}>
         <ThemedView style={styles.card}>
           <ThemedText style={styles.inputLabel}>购房总价 (万元)</ThemedText>
           <TextInput 
@@ -273,7 +275,7 @@ export default function RefinedMortgageCalculator() {
             </TouchableOpacity>
           </ThemedView>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <Modal visible={isModalVisible} animationType="slide">
         <ThemedView style={styles.modalContainer}>

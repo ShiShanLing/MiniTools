@@ -2,6 +2,7 @@ import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Platform } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import { useAppAppearance } from '@/lib/app-appearance';
 
 /**
  * 系统原生 Tab（iOS / Android）。
@@ -13,11 +14,26 @@ import { Colors } from '@/constants/theme';
  * 在特定系统版本上的问题，应用侧可改动有限。
  */
 export default function TabLayout() {
+  const { resolvedScheme } = useAppAppearance();
+  const c = Colors[resolvedScheme];
+  /**
+   * 使用不透明底栏 + 关闭毛玻璃与 iPad「边栏自适应」，避免浅色系下切到「我的/游戏」时
+   * Tab 仍随底层内容/滚动变成一整块暗黑条。
+   */
+  const tabBarBg = resolvedScheme === 'dark' ? '#1c1c1e' : '#f2f2f7';
+
   return (
     <NativeTabs
-      tintColor={Colors.light.tabIconSelected}
-      labelStyle={{ color: Colors.light.tabIconDefault }}
-      blurEffect={Platform.OS === 'ios' ? 'systemChromeMaterial' : undefined}
+      tintColor={c.tabIconSelected}
+      labelStyle={{
+        default: { color: c.tabIconDefault },
+        selected: { color: c.tabIconSelected },
+      }}
+      iconColor={{ default: c.tabIconDefault, selected: c.tabIconSelected }}
+      backgroundColor={tabBarBg}
+      blurEffect={Platform.OS === 'ios' ? 'none' : undefined}
+      disableTransparentOnScrollEdge
+      sidebarAdaptable={false}
       minimizeBehavior={Platform.OS === 'ios' ? 'never' : undefined}
     >
       <NativeTabs.Trigger name="index">

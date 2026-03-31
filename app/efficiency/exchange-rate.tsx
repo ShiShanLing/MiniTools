@@ -70,7 +70,7 @@ export default function ExchangeRateScreen() {
   const validAmount = !Number.isNaN(amtNum) && amtNum >= 0;
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '汇率换算', headerShown: true }} />
       <ScrollView
         contentContainerStyle={styles.scroll}

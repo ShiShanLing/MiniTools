@@ -108,7 +108,7 @@ export default function LunarCalendar() {
   };
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '农历查询', headerShown: true, headerBackTitle: '效率' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <ThemedView style={styles.todayCard}>

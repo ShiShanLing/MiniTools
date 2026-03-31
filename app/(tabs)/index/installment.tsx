@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView, TextInput, View, Platform } from 'react-native';
-import { Stack } from 'expo-router';
-
+import { StyleSheet, TextInput, View, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
@@ -41,9 +40,8 @@ export default function InstallmentCalculator() {
   }, [amount, periods, feeRate]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
-      <Stack.Screen options={{ title: '分期利率计算', headerShown: true }} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ThemedView style={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} bottomOffset={16}>
         
         <ThemedView style={styles.card}>
           <View style={styles.inputGroup}>
@@ -116,7 +114,7 @@ export default function InstallmentCalculator() {
           </ThemedText>
         </ThemedView>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </ThemedView>
   );
 }

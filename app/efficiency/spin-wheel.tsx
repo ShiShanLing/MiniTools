@@ -112,7 +112,7 @@ export default function SpinWheelScreen() {
   };
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '谁去拿外卖', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ThemedText style={styles.hint} type="defaultSemiBold">

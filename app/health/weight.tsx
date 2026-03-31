@@ -84,7 +84,7 @@ export default function WeightTracker() {
   }, [logs]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '体重追踪', headerShown: true }} />
       
       <ThemedView style={styles.inputCard}>

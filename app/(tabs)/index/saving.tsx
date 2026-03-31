@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, ScrollView, TextInput, View, Platform } from 'react-native';
-import { Stack } from 'expo-router';
+import { StyleSheet, TextInput, View, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
@@ -57,9 +57,8 @@ export default function SavingPlan() {
   }, [target, current, monthly, rate]);
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
-      <Stack.Screen options={{ title: '攒钱计划', headerShown: true }} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ThemedView style={styles.container}>
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} bottomOffset={16}>
         
         <ThemedView style={styles.card}>
           <View style={styles.inputGroup}>
@@ -138,7 +137,7 @@ export default function SavingPlan() {
           </ThemedText>
         </ThemedView>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </ThemedView>
   );
 }

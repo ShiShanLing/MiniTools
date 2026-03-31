@@ -345,7 +345,7 @@ export default function TetrisGame() {
   const previewBoxH = 4 * (previewCell + 2) + previewPad * 2;
 
   return (
-    <ThemedView style={styles.screen} tabletConstrain>
+    <ThemedView style={styles.screen}>
       <Stack.Screen options={{ title: '俄罗斯方块', headerShown: true, headerBackTitle: '🎮 游戏' }} />
 
       <View style={styles.gameFill} onLayout={onGameLayout}>

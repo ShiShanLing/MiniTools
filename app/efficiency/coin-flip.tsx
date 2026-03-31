@@ -55,7 +55,7 @@ export default function CoinFlipScreen() {
   };
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '抛硬币', headerShown: true }} />
       <View style={styles.stage}>
         <View style={styles.perspective}>

@@ -22,11 +22,11 @@ export const APP_NAV_SECTIONS: AppNavSection[] = [
     title: '财务',
     icon: 'payments',
     items: [
-      { id: 'mortgage', title: '房贷计算', icon: 'home', href: '/finance/mortgage' },
-      { id: 'tax', title: '个税计算', icon: 'payments', href: '/finance/tax' },
-      { id: 'installment', title: '记账分期', icon: 'account-balance', href: '/finance/installment' },
-      { id: 'subscription', title: '订阅管理', icon: 'subscriptions', href: '/finance/subscription' },
-      { id: 'saving', title: '攒钱计划', icon: 'savings', href: '/finance/saving' },
+      { id: 'mortgage', title: '房贷计算', icon: 'home', href: '/(tabs)/index/mortgage' },
+      { id: 'tax', title: '个税计算', icon: 'payments', href: '/(tabs)/index/tax' },
+      { id: 'installment', title: '记账分期', icon: 'account-balance', href: '/(tabs)/index/installment' },
+      { id: 'subscription', title: '订阅管理', icon: 'subscriptions', href: '/(tabs)/index/subscription' },
+      { id: 'saving', title: '攒钱计划', icon: 'savings', href: '/(tabs)/index/saving' },
     ],
   },
   {
@@ -46,6 +46,12 @@ export const APP_NAV_SECTIONS: AppNavSection[] = [
     icon: 'bolt',
     items: [
       { id: 'recurring', title: '例行任务', icon: 'event-available', href: '/efficiency/recurring-tasks' },
+      {
+        id: 'onetime',
+        title: '定时提醒',
+        icon: 'alarm',
+        href: '/efficiency/one-time-reminder',
+      },//
       { id: 'time', title: '时间效率', icon: 'timer', href: '/efficiency/timer' },
       { id: 'weather', title: '天气预报', icon: 'wb-sunny', href: '/efficiency/weather' },
       { id: 'calendar', title: '农历查询', icon: 'calendar-today', href: '/efficiency/lunar' },
@@ -90,6 +96,7 @@ export type EfficiencyListRow = ToolListRow;
 
 const EFFICIENCY_LIST_SUBTITLE: Record<string, string> = {
   recurring: '周期提醒 · 今日待办',
+  onetime: '指定日期时间 · 仅提醒一次',
   time: '番茄钟 · 待办与截止日期',
   weather: '多日预报与实况',
   calendar: '农历节气与宜忌',
@@ -169,7 +176,26 @@ function normPath(p: string) {
   return q.endsWith('/') && q.length > 1 ? q.slice(0, -1) : q;
 }
 
-export function findNavItemByHref(href: string): AppNavItem | undefined {
+/** 旧版财务工具在根目录 app/finance/*，收藏 / 最近里可能仍是这些路径 */
+const LEGACY_TOOL_HREF: Record<string, string> = {
+  '/finance/mortgage': '/(tabs)/index/mortgage',
+  '/finance/tax': '/(tabs)/index/tax',
+  '/finance/installment': '/(tabs)/index/installment',
+  '/finance/subscription': '/(tabs)/index/subscription',
+  '/finance/saving': '/(tabs)/index/saving',
+};
+
+export function canonicalToolHref(href: string): string {
   const n = normPath(href);
-  return getAllNavItems().find((i) => normPath(i.href) === n);
+  return LEGACY_TOOL_HREF[n] ?? n;
+}
+
+export function findNavItemByHref(href: string): AppNavItem | undefined {
+  const n = normPath(canonicalToolHref(href));
+  const items = getAllNavItems();
+  const direct = items.find((i) => normPath(i.href) === n);
+  if (direct) return direct;
+  const tail = n.split('/').filter(Boolean).pop();
+  if (!tail) return undefined;
+  return items.find((i) => normPath(i.href).endsWith('/' + tail));
 }

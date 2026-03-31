@@ -16,6 +16,15 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+    /** 列表条目浅蓝卡片（财务/健康/效率/游戏） */
+    toolListRow: '#E8F3FF',
+    toolListRowBorder: '#B3D7FF',
+    toolListIconBg: '#ffffff',
+    /** 白底列表行、设置卡片等 */
+    elevatedSurface: '#ffffff',
+    /** 「我的」页芯片、次要信息 */
+    chipBackground: '#EEF6FF',
+    chipBorder: '#CCE4FF',
   },
   dark: {
     text: '#ECEDEE',
@@ -24,6 +33,12 @@ export const Colors = {
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
+    toolListRow: '#2a3344',
+    toolListRowBorder: '#3d5166',
+    toolListIconBg: '#1a222e',
+    elevatedSurface: '#2c2c2e',
+    chipBackground: '#1e2d42',
+    chipBorder: '#355a8a',
   },
 };
 

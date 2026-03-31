@@ -6,6 +6,7 @@ import ReactAppDependencyProvider
 class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
+
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
 

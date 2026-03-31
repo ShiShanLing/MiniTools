@@ -37,7 +37,7 @@ export default function DevTools() {
   }
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: '开发者工具', headerShown: true }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         

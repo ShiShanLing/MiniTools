@@ -14,7 +14,7 @@ export default function GamesScreen() {
   const tools = getGamesListRows();
 
   return (
-    <ThemedView style={styles.container} tabletConstrain>
+    <ThemedView style={styles.container}>
       <ThemedView style={styles.header}>
         <ThemedText type="title">休闲游戏</ThemedText>
       </ThemedView>

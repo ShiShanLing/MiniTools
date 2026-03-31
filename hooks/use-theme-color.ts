@@ -1,19 +1,16 @@
-/**
- * 应用固定浅色主题；见 hooks/use-color-scheme.ts。
- */
-
 import { Colors } from '@/constants/theme';
+import { useAppAppearance } from '@/lib/app-appearance';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
+  colorName: keyof typeof Colors.light & keyof typeof Colors.dark,
 ) {
-  const theme = 'light' as const;
+  const { resolvedScheme } = useAppAppearance();
+  const theme = resolvedScheme;
   const colorFromProps = props[theme];
 
   if (colorFromProps) {
     return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
   }
+  return Colors[theme][colorName];
 }

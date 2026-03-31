@@ -2,6 +2,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type ToolListRowProps = {
   title: string;
@@ -10,12 +11,20 @@ export type ToolListRowProps = {
   onPress: () => void;
 };
 
-/** Tab 工具列表：与「效率」页条目一致的浅蓝卡片样式 */
+/** Tab 工具列表：与「效率」页条目一致的浅蓝卡片样式；深色模式使用 `constants/theme` 中的 toolList* 色 */
 export function ToolListRow({ title, subtitle, icon, onPress }: ToolListRowProps) {
+  const rowBg = useThemeColor({}, 'toolListRow');
+  const rowBorder = useThemeColor({}, 'toolListRowBorder');
+  const iconWrapBg = useThemeColor({}, 'toolListIconBg');
+  const tint = useThemeColor({}, 'tint');
+
   return (
-    <TouchableOpacity style={styles.item} activeOpacity={0.75} onPress={onPress}>
-      <View style={styles.iconWrap}>
-        <MaterialIcons name={icon as any} size={28} color="#007AFF" />
+    <TouchableOpacity
+      style={[styles.item, { backgroundColor: rowBg, borderColor: rowBorder }]}
+      activeOpacity={0.75}
+      onPress={onPress}>
+      <View style={[styles.iconWrap, { backgroundColor: iconWrapBg }]}>
+        <MaterialIcons name={icon as any} size={28} color={tint} />
       </View>
       <View style={styles.body}>
         <ThemedText type="defaultSemiBold" style={styles.title}>
@@ -23,7 +32,7 @@ export function ToolListRow({ title, subtitle, icon, onPress }: ToolListRowProps
         </ThemedText>
         <ThemedText style={styles.sub}>{subtitle}</ThemedText>
       </View>
-      <MaterialIcons name="chevron-right" size={24} color="#007AFF" />
+      <MaterialIcons name="chevron-right" size={24} color={tint} />
     </TouchableOpacity>
   );
 }
@@ -41,15 +50,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderRadius: 14,
-    backgroundColor: '#E8F3FF',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#B3D7FF',
   },
   iconWrap: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -63,6 +69,6 @@ const styles = StyleSheet.create({
   sub: {
     marginTop: 4,
     fontSize: 13,
-    opacity: 0.65,
+    opacity: 0.72,
   },
 });
